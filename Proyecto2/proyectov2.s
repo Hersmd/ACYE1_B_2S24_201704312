@@ -99,7 +99,7 @@ cmdsep:
     .asciz "SEPARADO POR COMA"
 
 menu_cmd_msg:
-    .asciz "Ingrese el comando a ejecutar\n>> "
+    .asciz "Ingrese el comando a ejecutar\n"
     lenMenuCmdMsg = .- menu_cmd_msg
 
 resultado_suma_msg:
@@ -343,26 +343,27 @@ atoi:
             RET
 store_cell_row:
 // params: x13 => bufferComando, x14 => cell_row
-    STR xzr, [x14]
+
     LDRB w3, [x13], 1
-    CMP w3, ' '
-    BEQ err_row_out_of_range
+    MOV w11, ' '
+    CMP w3, w11
+    BEQ ret_store_cell_row
     
     STRB w3, [x14], 1
     
     LDRB w3, [x13], 1
-    CMP w3, ' '
+    CMP w3, w11
     BEQ ret_store_cell_row
     STRB w3, [x14], 1
 
     LDRB w3, [x13], 1
+    print 1, cell_row, 2
     CBZ w3, ret_store_cell_row
     CMP w3, 10          // Salto de línea
     BEQ ret_store_cell_row
-    CMP w3, ' '
+    CMP w3, w11
     BNE err_row_out_of_range
     ret_store_cell_row:
-        print 1, cell_row, 2
         RET
         
 proc_save:
@@ -513,7 +514,6 @@ get_cell_sloth:
     MUL x6, x9, x5         // Calcular el desplazamiento de la fila
     ADD x6, x6, x16         // Añadir el desplazamiento de la columna
     // Cargar el valor almacenado en la celda
-    
     RET
 
 proc_prom:
@@ -567,7 +567,7 @@ proc_prom:
         STP x29, x30, [SP, -16]!
         BL get_cell_sloth //almacenado en x6
         LDP x29, x30, [SP], 16
-        MOV x22, x16             // se indica el numero de la primera columna
+
         MOV x17, x6
 
         LDR x14, =cmdhasta
@@ -603,110 +603,73 @@ proc_prom:
                 STP x29, x30, [SP, -16]!
                 BL get_cell_sloth //almacenado en x6
                 LDP x29, x30, [SP], 16
-                //EN X9 Y X6 SE TIENE EL SLOT DEL SEGUNDO PARAMETRO
-                //SE QUIERE GUARDAR EN X9 EL MAYOR Y EN X17 EL MENOR, PARA PODER RECORRER EL ARREGLO
-                MOV x9, x6             
-                MOV x18, x16             // Se almacena en x18 el numero de la segunda col
-                
-                CMP x17, x9
-                CSEL x9, x17, x9, GT    // Se intercambian los valores para dejar en x9 el mayor
-                CSEL x17, x6, x17, GT   // Se intercambian los valores para dejar en x17 el menor
-  
-                MOV x15, 0
-                MOV x28, xzr           // Inicializar suma a 0
-                //EN x22 se tiene el numero de la primera columna
-                //EN x18 se tiene el numero de la segunda columna
-                //EN x16 se tiene el numero de la segunda columna
-                //Si el primer slot es mas grande que el segundo, se guarda x22 en x18
-                //Es decir se guarda el numero de la primera columna en x18
-                CSEL x18, x22, x18, GT    // Se intercambian para dejar en x18 la columna del mayor
-                //Si el primer slot es mas grande que el segundo x16 se queda igual
-                //Es decir
-                CSEL x16, x16, x22, GT   // Se intercambian para dejar en x16 la columna del menor
-                ADD x9, x9, 1        // Se incrmenta en para que recorra la ultima celda
-                CMP x19, 10         // Se verifica si es el comando PROMEDIO
-                LDR x4, =arreglo       // Dirección base del arreglo
-                BGT comprobar_cmd_min
-                LDR x10, =cell_col
-                B prom
-                comprobar_cmd_min:
-                    CMP x19, 11
-                    BGT comprobar_cmd_max
-                    LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
-                    MOV x28, x5                     // Inicializar el valor mínimo
-                    ADD x17, x17, 1                // Mover a la siguiente celda
-                    CMP x17, x9                     // Comparar si se ha llegado al final
-                    BNE min                     // Si no se ha llegado al final, continuar
-                    B end_proc_min             // Si se ha llegado al final, terminar
-                    comprobar_cmd_max:
-                        CMP x19, 12
-                        LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
-                        MOV x28, x5
-                        ADD x17, x17, 1
-                        CMP x17, x9
-                        BNE max
-                        B end_proc_max
-                prom:
-                    LDR x19, [x4, x17, LSL #3]       // Cargar el valor en x19
-                    MOV x23, 11
-                    UDIV x2, x17, x23
-                    MSUB x20, x2, x23, x17       // x20 contiene el residuo de la division entre 11
-                    
-                    CMP x20, x16               // Se compara el residuo con el numero de la primera columna
-                    CINC x17, x17, LT       // Si el residuo es menor que el numero de la primera columna, se incrementa el slot
-                    BLT prom                // Si el residuo es menor que el numero de la primera columna, se repite el ciclo
-                    CMP x20, x18            // Se compara el residuo con el numero de la segunda columna
-                    CINC x17, x17, GT       // Si el residuo es mayor que el numero de la segunda columna, se incrementa el slot
-                    BGT prom
 
-                    ADD x15, x15, #1         // Se incrementa en 1 el contador de celdas
-                    ADD x28, x28, x19        // Se suma el valor de la celda a la suma
-                    ADD x17, x17, 1
+                LDR x4, =arreglo       // Dirección base del arreglo
+                MOV x9, x6
+                SUBS x6, x17, x9        // x6 contiene la cantidad de celdas a recorrer
+                CMP x6, 0
+                MOV x28, xzr           // Inicializar suma a 0
+                BGT posx6
+                NEG x6, x6
+                posx6:
+                ADD x6, x6, 1          // Ajustar para incluir ambas celdas en el rango
+                MOV x3, 1
+                BLT ajuste
+                MOV x3, -1
+                MOV x28, xzr
+                
+                ajuste:
+                    ADD x9, x9, x3
+                    CMP x19, 10
+                    BGT comprobar_cmd_min
+                    B prom
+                    comprobar_cmd_min:
+                        CMP x19, 11
+                        BGT comprobar_cmd_max
+                        LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
+                        MOV x28, x5                     // Inicializar el valor mínimo
+                        CMP x17, x9                     // Comparar si se ha llegado al final
+                        ADD x17, x17, x3                // Mover a la siguiente celda
+                        ADD x9, x9, x3                  // Ajustar el límite para hacer una iteracion mas
+                        BNE min                     // Si no se ha llegado al final, continuar
+                        B end_proc_min             // Si se ha llegado al final, terminar
+                        comprobar_cmd_max:
+                            CMP x19, 12
+                            LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
+                            MOV x28, x5
+                            CMP x17, x9
+                            ADD x17, x17, x3
+                            ADD x9, x9, x3
+                            BNE max
+                            B end_proc_max
+
+                prom:
+                    LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
+                    ADD x28, x28, x5
+                    ADD x17, x17, x3
                     CMP x17, x9
                     BNE prom
-                    end_prom:
-                        UDIV x28, x28, x15
-                        B end_proc_prom
+                    SDIV x28, x28, x6
+                    B end_proc_prom
                 min:
-                    LDR x19, [x4, x17, LSL #3]       // Cargar el valor en x19
-                    MOV x23, 11
-                    UDIV x2, x17, x23
-                    MSUB x20, x2, x23, x17       // x20 contiene el residuo de la division entre 11
-                    CMP x20, x16               // Se compara el residuo con el numero de la primera columna
-                    CINC x17, x17, LT       // Si el residuo es menor que el numero de la primera columna, se incrementa el slot
-                    BLT min                // Si el residuo es menor que el numero de la primera columna, se repite el ciclo
-                    
-                    CMP x20, x18            // Se compara el residuo con el numero de la segunda columna
-                    CINC x17, x17, GT       // Si el residuo es mayor que el numero de la segunda columna, se incrementa el slot
-                    BGT min
 
-                    CMP x19, x28
-                    CSEL x28, x19, x28, LT
-                    ADD x17, x17, 1
+                    LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
+                    ADD x17, x17, x3
                     CMP x17, x9
-                    BGE end_proc_min
-
+                    BEQ end_proc_min
+                    CMP x5, x28
+                    BGE min
+                    MOV x28, x5
                     B min
                 
                 max:
-                    LDR x19, [x4, x17, LSL #3]       // Cargar el valor en x19
-                    MOV x23, 11
-                    UDIV x2, x17, x23
-                    MSUB x20, x2, x23, x17       // x20 contiene el residuo de la division entre 11
-                    CMP x20, x16               // Se compara el residuo con el numero de la primera columna
-                    CINC x17, x17, LT       // Si el residuo es menor que el numero de la primera columna, se incrementa el slot
-                    BLT max                // Si el residuo es menor que el numero de la primera columna, se repite el ciclo
-                    
-                    CMP x20, x18            // Se compara el residuo con el numero de la segunda columna
-                    CINC x17, x17, GT       // Si el residuo es mayor que el numero de la segunda columna, se incrementa el slot
-                    BGT max
-
-                    CMP x19, x28
-                    CSEL x28, x19, x28, GT
-                    ADD x17, x17, 1
+                    LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
+                    ADD x17, x17, x3
                     CMP x17, x9
-                    BGE end_proc_max
-                    
+                    BEQ end_proc_max
+                    CMP x5, x28
+                    BLE max
+                    MOV x28, x5
                     B max
     end_proc_min:
         print 1, resultado_minimo_msg, lenResultadoMinimoMsg
@@ -1471,11 +1434,9 @@ fn_errorCMD:
     B menucomando
 
 err_col_out_of_range:
-    print 1, cell_row, 2
     print 1, errorColOutOfRange, lenErrColOutOfRange
     B menucomando
 
 err_row_out_of_range:
-    print 1, cell_row, 2
     print 1, errorRowOutOfRange, lenErrRowOutOfRange
     B menucomando

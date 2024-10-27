@@ -74,15 +74,6 @@ cmdoxlogico:
 cmdnologico:
     .asciz "NOLOGICO"
 
-cmdprom:
-    .asciz "PROMEDIO DESDE"
-
-cmdmin:
-    .asciz "MINIMO DESDE"
-
-cmdmax:
-    .asciz "MAXIMO DESDE"
-
 cmdy:
     .asciz "Y"
 
@@ -92,31 +83,17 @@ cmdentre:
 cmda_la:
     .asciz "A LA"
 
-cmdhasta:
-    .asciz "HASTA"
 
 cmdsep:
     .asciz "SEPARADO POR COMA"
 
 menu_cmd_msg:
-    .asciz "Ingrese el comando a ejecutar\n>> "
+    .asciz "Ingrese el comando a ejecutar\n"
     lenMenuCmdMsg = .- menu_cmd_msg
 
 resultado_suma_msg:
     .asciz "El resultado de la operación es: "
     lenResultadoSumaMsg = .- resultado_suma_msg
-
-resultado_promedio_msg:
-    .asciz "El promedio del rango seleccionado es: "
-    lenResultadoPromedioMsg = .- resultado_promedio_msg
-
-resultado_minimo_msg:
-    .asciz "El valor mínimo del rango seleccionado es: "
-    lenResultadoMinimoMsg = .- resultado_minimo_msg
-
-resultado_maximo_msg:
-    .asciz "El valor máximo del rango seleccionado es: "
-    lenResultadoMaximoMsg = .- resultado_maximo_msg
 
 errorImport:
     .asciz "Error En El Comando De Importación\n"
@@ -125,7 +102,7 @@ errorSave:
     .asciz "Error En El Comando De Guardado\n"
     lenErrorSave = .- errorSave
 errorCmd:
-    .asciz "Error, comando no encontrado\n"
+    .asciz "Error, comando no enconDASDAStrado\n"
     lenErrorCmd = .- errorCmd
 
 errorPrimParam:
@@ -143,14 +120,6 @@ errorColOutOfRange:
 errorSum:
     .asciz "Error En El Comando de operación aritmética\n"
     lenErrorSum = .- errorSum
-
-errorProm:
-    .asciz "Error En El Comando de promedio\n"
-    lenErrorProm = .- errorProm
-
-errorCmdSec:
-    .asciz "Error, comando secundario incorrecto (Y, EN, ENTRE, A LA)\n"
-    lenErrorCmdSec = .- errorCmdSec
 
 errorRowOutOfRange:
     .asciz "Error, fila fuera de rango, el rango es de 1 a 23\n"
@@ -193,13 +162,13 @@ filename:
     .space 100
 
 buffer:
-    .zero 4096
+    .zero 1024
 
 fileDescriptor:
     .space 8
 
 listIndex:
-    .zero 13
+    .zero 6
 
 num:
     .space 8
@@ -335,36 +304,10 @@ atoi:
         a_c_negative:
             NEG X9, X9
         a_c_end:
-            /*LDR x4, =num
-            STR x8, [x4]
             print 1, salto, lenSalto
             print 1, num, 3
-            print 1, salto, lenSalto*/
+            print 1, salto, lenSalto
             RET
-store_cell_row:
-// params: x13 => bufferComando, x14 => cell_row
-    STR xzr, [x14]
-    LDRB w3, [x13], 1
-    CMP w3, ' '
-    BEQ err_row_out_of_range
-    
-    STRB w3, [x14], 1
-    
-    LDRB w3, [x13], 1
-    CMP w3, ' '
-    BEQ ret_store_cell_row
-    STRB w3, [x14], 1
-
-    LDRB w3, [x13], 1
-    CBZ w3, ret_store_cell_row
-    CMP w3, 10          // Salto de línea
-    BEQ ret_store_cell_row
-    CMP w3, ' '
-    BNE err_row_out_of_range
-    ret_store_cell_row:
-        print 1, cell_row, 2
-        RET
-        
 proc_save:
     LDR x14, =cmdsave // cargar comando de guardado
     LDR x13, =bufferComando
@@ -385,20 +328,14 @@ proc_save:
             B end_proc_save
     save_cell:
         LDRB w2, [x13], 1   // cargar la letra (columna) o numero
-
         MOV W3, 'K'      // K
         CMP w2, W3
         BGT err_col_out_of_range
-
         CMP w2, 'A'      // A
         LDR x14, =cell_col
         STRB w2, [x14]
         LDR x14, =cell_row
         BGE cont_save_cell_index
-
-        CMP w2, '*'      // 40 en ASCII 
-        BEQ use_pointer_save
-
         CMP w2, '-'      // 0
         BLT err_prim_param // Si es menor a 0, error AGREGAR ERROR ESPECIFICO
         LDR x5, =num
@@ -414,7 +351,6 @@ proc_save:
 
             ADD x4, x4, 1
             B store_num_save_loop
-        
         convert_num_save:
             LDR x5, =num
             LDR x8, =num
@@ -422,12 +358,6 @@ proc_save:
             BL atoi
             LDP x29, x30, [SP], 16
             B cont_save_num
-        
-        use_pointer_save:
-            MOV x9, x28
-            ADD x13, x13, 1
-            B cont_save_num
-
         cont_save_cell_index:
             STP x29, x30, [SP, -16]!
             BL store_cell_row //guarda en cell_row la fila en ASCII
@@ -477,16 +407,11 @@ proc_save:
                 STR x17, [x4, x6, LSL #3]       // Almacenar el valor en la matriz
     end_proc_save:
         RET
-        
 err_prim_param:
     print 1, errorPrimParam, lenErrorPrimParam
     B menucomando
 err_seg_param:
     print 1, errorSegParam, lenErrorSegParam
-    B menucomando
-
-err_cmd_sec:
-    print 1, errorCmdSec, lenErrorCmdSec
     B menucomando
 
 get_cell_sloth:
@@ -513,212 +438,7 @@ get_cell_sloth:
     MUL x6, x9, x5         // Calcular el desplazamiento de la fila
     ADD x6, x6, x16         // Añadir el desplazamiento de la columna
     // Cargar el valor almacenado en la celda
-    
     RET
-
-proc_prom:
-    LDR x13, =bufferComando
-    CMP x19, 10
-    BGT cargar_otro_comando_prom
-    LDR x14, =cmdprom // cargar comando de promedio
-    B prom_loop
-    cargar_otro_comando_prom:
-        CMP x19, 11
-        BGT cargar_otro_comando_prom2
-        LDR x14, =cmdmin
-        B prom_loop
-        cargar_otro_comando_prom2:
-            CMP x19, 12
-            LDR x14, =cmdmax
-            B prom_loop
-
-    prom_loop:
-        LDRB w2, [x14], 1
-        LDRB w3, [x13], 1
-
-        CBZ w2, prom_cell1
-
-        CMP w2, w3
-        BNE prom_error
-
-        B prom_loop
-
-        prom_error:
-            print 1, errorProm, lenErrorProm
-            B end_proc_prom
-    
-    prom_cell1:
-        LDRB w2, [x13], 1   // cargar la letra (columna) o numero
-        MOV W3, 'K'      // K
-        CMP w2, W3
-        BGT err_col_out_of_range
-        CMP w2, 'A'      // A
-        BGE cont_prom_cell_index
-        B err_col_out_of_range // Si no esta entre A y K, error
-    
-    cont_prom_cell_index:
-        LDR x14, =cell_col
-        STRB w2, [x14]
-        LDR x14, =cell_row
-        STP x29, x30, [SP, -16]!
-        BL store_cell_row //guarda en cell_row la fila en ASCII
-        LDP x29, x30, [SP], 16
-
-        STP x29, x30, [SP, -16]!
-        BL get_cell_sloth //almacenado en x6
-        LDP x29, x30, [SP], 16
-        MOV x22, x16             // se indica el numero de la primera columna
-        MOV x17, x6
-
-        LDR x14, =cmdhasta
-        verify_hasta:
-            LDRB w2, [x14], 1   // comando HASTA
-            LDRB w3, [x13], 1   // BUFFER
-
-            CBZ w2, get_second_param_prom
-        
-            CMP w2, w3
-            BNE err_cmd_sec
-
-            B verify_hasta
-        
-        get_second_param_prom:
-            LDRB w2, [x13], 1   // cargar la letra (columna) o numero
-
-            CMP w2,'K'
-            BGT err_col_out_of_range
-
-            CMP w2, 'A'      // A
-            BGE cont_prom_cell_index2
-            B err_col_out_of_range
-            
-            cont_prom_cell_index2:
-                LDR x14, =cell_col
-                STRB w2, [x14]
-                LDR x14, =cell_row
-                STP x29, x30, [SP, -16]!
-                BL store_cell_row //guarda en cell_row la fila en ASCII
-                LDP x29, x30, [SP], 16
-
-                STP x29, x30, [SP, -16]!
-                BL get_cell_sloth //almacenado en x6
-                LDP x29, x30, [SP], 16
-                //EN X9 Y X6 SE TIENE EL SLOT DEL SEGUNDO PARAMETRO
-                //SE QUIERE GUARDAR EN X9 EL MAYOR Y EN X17 EL MENOR, PARA PODER RECORRER EL ARREGLO
-                MOV x9, x6             
-                MOV x18, x16             // Se almacena en x18 el numero de la segunda col
-                
-                CMP x17, x9
-                CSEL x9, x17, x9, GT    // Se intercambian los valores para dejar en x9 el mayor
-                CSEL x17, x6, x17, GT   // Se intercambian los valores para dejar en x17 el menor
-  
-                MOV x15, 0
-                MOV x28, xzr           // Inicializar suma a 0
-                //EN x22 se tiene el numero de la primera columna
-                //EN x18 se tiene el numero de la segunda columna
-                //EN x16 se tiene el numero de la segunda columna
-                //Si el primer slot es mas grande que el segundo, se guarda x22 en x18
-                //Es decir se guarda el numero de la primera columna en x18
-                CSEL x18, x22, x18, GT    // Se intercambian para dejar en x18 la columna del mayor
-                //Si el primer slot es mas grande que el segundo x16 se queda igual
-                //Es decir
-                CSEL x16, x16, x22, GT   // Se intercambian para dejar en x16 la columna del menor
-                ADD x9, x9, 1        // Se incrmenta en para que recorra la ultima celda
-                CMP x19, 10         // Se verifica si es el comando PROMEDIO
-                LDR x4, =arreglo       // Dirección base del arreglo
-                BGT comprobar_cmd_min
-                LDR x10, =cell_col
-                B prom
-                comprobar_cmd_min:
-                    CMP x19, 11
-                    BGT comprobar_cmd_max
-                    LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
-                    MOV x28, x5                     // Inicializar el valor mínimo
-                    ADD x17, x17, 1                // Mover a la siguiente celda
-                    CMP x17, x9                     // Comparar si se ha llegado al final
-                    BNE min                     // Si no se ha llegado al final, continuar
-                    B end_proc_min             // Si se ha llegado al final, terminar
-                    comprobar_cmd_max:
-                        CMP x19, 12
-                        LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
-                        MOV x28, x5
-                        ADD x17, x17, 1
-                        CMP x17, x9
-                        BNE max
-                        B end_proc_max
-                prom:
-                    LDR x19, [x4, x17, LSL #3]       // Cargar el valor en x19
-                    MOV x23, 11
-                    UDIV x2, x17, x23
-                    MSUB x20, x2, x23, x17       // x20 contiene el residuo de la division entre 11
-                    
-                    CMP x20, x16               // Se compara el residuo con el numero de la primera columna
-                    CINC x17, x17, LT       // Si el residuo es menor que el numero de la primera columna, se incrementa el slot
-                    BLT prom                // Si el residuo es menor que el numero de la primera columna, se repite el ciclo
-                    CMP x20, x18            // Se compara el residuo con el numero de la segunda columna
-                    CINC x17, x17, GT       // Si el residuo es mayor que el numero de la segunda columna, se incrementa el slot
-                    BGT prom
-
-                    ADD x15, x15, #1         // Se incrementa en 1 el contador de celdas
-                    ADD x28, x28, x19        // Se suma el valor de la celda a la suma
-                    ADD x17, x17, 1
-                    CMP x17, x9
-                    BNE prom
-                    end_prom:
-                        UDIV x28, x28, x15
-                        B end_proc_prom
-                min:
-                    LDR x19, [x4, x17, LSL #3]       // Cargar el valor en x19
-                    MOV x23, 11
-                    UDIV x2, x17, x23
-                    MSUB x20, x2, x23, x17       // x20 contiene el residuo de la division entre 11
-                    CMP x20, x16               // Se compara el residuo con el numero de la primera columna
-                    CINC x17, x17, LT       // Si el residuo es menor que el numero de la primera columna, se incrementa el slot
-                    BLT min                // Si el residuo es menor que el numero de la primera columna, se repite el ciclo
-                    
-                    CMP x20, x18            // Se compara el residuo con el numero de la segunda columna
-                    CINC x17, x17, GT       // Si el residuo es mayor que el numero de la segunda columna, se incrementa el slot
-                    BGT min
-
-                    CMP x19, x28
-                    CSEL x28, x19, x28, LT
-                    ADD x17, x17, 1
-                    CMP x17, x9
-                    BGE end_proc_min
-
-                    B min
-                
-                max:
-                    LDR x19, [x4, x17, LSL #3]       // Cargar el valor en x19
-                    MOV x23, 11
-                    UDIV x2, x17, x23
-                    MSUB x20, x2, x23, x17       // x20 contiene el residuo de la division entre 11
-                    CMP x20, x16               // Se compara el residuo con el numero de la primera columna
-                    CINC x17, x17, LT       // Si el residuo es menor que el numero de la primera columna, se incrementa el slot
-                    BLT max                // Si el residuo es menor que el numero de la primera columna, se repite el ciclo
-                    
-                    CMP x20, x18            // Se compara el residuo con el numero de la segunda columna
-                    CINC x17, x17, GT       // Si el residuo es mayor que el numero de la segunda columna, se incrementa el slot
-                    BGT max
-
-                    CMP x19, x28
-                    CSEL x28, x19, x28, GT
-                    ADD x17, x17, 1
-                    CMP x17, x9
-                    BGE end_proc_max
-                    
-                    B max
-    end_proc_min:
-        print 1, resultado_minimo_msg, lenResultadoMinimoMsg
-        RET
-    end_proc_max:
-        print 1, resultado_maximo_msg, lenResultadoMaximoMsg
-        RET
-    end_proc_prom:
-        print 1, resultado_promedio_msg, lenResultadoPromedioMsg
-        RET
-
-
 
 proc_op:
     // params: x13 => bufferComando
@@ -787,9 +507,10 @@ proc_op:
         CMP w2, W3
         BGT err_col_out_of_range
         CMP w2, 'A'      // A
+        LDR x14, =cell_col
+        STRB w2, [x14]
+        LDR x14, =cell_row
         BGE cont_op_cell_index
-        CMP w2, '*'      // 40 en ASCII 
-        BEQ use_pointer_sum1
         CMP w2, '-'      // 0
         BLT err_prim_param // Si es menor a 0, error AGREGAR ERROR ESPECIFICO
         LDR x5, =num
@@ -805,10 +526,6 @@ proc_op:
 
             ADD x4, x4, 1
             B store_num_op_loop
-        use_pointer_sum1:
-            MOV x17, x28
-            ADD x13, x13, 1
-            B cont_op_num
         convert_num_op:
             LDR x5, =num
             LDR x8, =num
@@ -820,10 +537,7 @@ proc_op:
             MOV x17, x9
             B cont_op_num
         cont_op_cell_index:
-            LDR x14, =cell_col
-            STRB w2, [x14]
-            LDR x14, =cell_row
-
+            
             STP x29, x30, [SP, -16]!
             BL store_cell_row //guarda en cell_row la fila en ASCII
             LDP x29, x30, [SP], 16
@@ -861,21 +575,19 @@ proc_op:
                 CBZ w2, get_second_param_op
         
                 CMP w2, w3
-                BNE err_cmd_sec
+                BNE err_prim_param
 
                 B verify_y
         get_second_param_op:
             LDRB w2, [x13], 1   // cargar la letra (columna) o numero
-
-            CMP w2,'K'
-            //BGT err_col_out_of_range
-
+            MOV W3, 'K'      // K
+            CMP w2, W3
+            BGT err_col_out_of_range
             CMP w2, 'A'      // A
+            LDR x14, =cell_col
+            STRB w2, [x14]
+            LDR x14, =cell_row
             BGE cont_op_cell_index2
-
-            CMP w2, '*'      // 40 en ASCII
-            BEQ use_pointer_sum2
-
             CMP w2, '-'      
             BLT err_prim_param // Si es menor a 0, error AGREGAR ERROR ESPECIFICO
             
@@ -895,11 +607,6 @@ proc_op:
 
                 ADD x4, x4, 1
                 B store_num_op_loop2
-            use_pointer_sum2:
-                MOV x9, x28
-                ADD x13, x13, 1
-                B cont_op_num2
-
             convert_num_op2:
                 LDR x5, =num
                 LDR x8, =num
@@ -910,9 +617,6 @@ proc_op:
                 MOV x8, xzr
                 B cont_op_num2
             cont_op_cell_index2:
-                LDR x14, =cell_col
-                STRB w2, [x14]
-                LDR x14, =cell_row
                 STP x29, x30, [SP, -16]!
                 BL store_cell_row //guarda en cell_row la fila en ASCII
                 LDP x29, x30, [SP], 16
@@ -994,6 +698,31 @@ proc_op:
                 MOV x9, xzr
                 MOV x17, xzr
     end_proc_op:
+        RET
+
+
+store_cell_row:
+// params: x13 => bufferComando, x14 => cell_row
+
+    LDRB w2, [x13], 1
+    MOV w11, ' '
+    CMP w2, w11
+    BEQ ret_store_cell_row
+    
+    STRB w2, [x14], 1
+    
+    LDRB w2, [x13], 1
+    CMP w2, w11
+    BEQ ret_store_cell_row
+    STRB w2, [x14], 1
+
+    LDRB w2, [x13], 1
+    CBZ w2, ret_store_cell_row
+    CMP w2, 10          // Salto de línea
+    BEQ ret_store_cell_row
+    CMP w2, w11
+    BNE err_row_out_of_range
+    ret_store_cell_row:
         RET
 
 proc_import:
@@ -1377,33 +1106,6 @@ findcmd:
     MOV X19, 9  // INDICADOR DE OPERACION 9 = NOT LOGICO
     BEQ fn_aritmetic_op_cmd
 
-    LDR x0, =cmdprom
-    LDR x1, =bufferComando
-    STP x29, x30, [SP, -16]!
-    BL findcmd_loop
-    LDP x29, x30, [SP], 16
-    CMP x2, 1         // Indicador de que el comando coincide
-    MOV x19, 10
-    BEQ fn_promCMD
-
-    LDR x0, =cmdmin
-    LDR x1, =bufferComando
-    STP x29, x30, [SP, -16]!
-    BL findcmd_loop
-    LDP x29, x30, [SP], 16
-    CMP x2, 1         // Indicador de que el comando coincide
-    MOV x19, 11
-    BEQ fn_promCMD
-
-    LDR x0, =cmdmax
-    LDR x1, =bufferComando
-    STP x29, x30, [SP, -16]!
-    BL findcmd_loop
-    LDP x29, x30, [SP], 16
-    CMP x2, 1         // Indicador de que el comando coincide
-    MOV x19, 12
-    BEQ fn_promCMD
-
     LDR x0, =cmdimp
     LDR x1, =bufferComando
     STP x29, x30, [SP, -16]!
@@ -1423,16 +1125,6 @@ fn_saveCMD:
 fn_aritmetic_op_cmd:
     BL proc_op
     print 1, resultado_suma_msg, lenResultadoSumaMsg
-    MOV x0, x28
-    LDR x1, =num
-    STP x29, x30, [SP, -16]!
-    BL itoa
-    LDP x29, x30, [SP], 16
-    print 1, salto, lenSalto
-    B menucomando
-
-fn_promCMD:
-    BL proc_prom
     MOV x0, x28
     LDR x1, =num
     STP x29, x30, [SP, -16]!
@@ -1467,15 +1159,13 @@ findcmd_loop:
             MOV x2, 1
             RET
 fn_errorCMD:
-    print 1, errorCmd, lenErrorCmd
+    print 1, errorCmd, 15
     B menucomando
 
 err_col_out_of_range:
-    print 1, cell_row, 2
     print 1, errorColOutOfRange, lenErrColOutOfRange
     B menucomando
 
 err_row_out_of_range:
-    print 1, cell_row, 2
     print 1, errorRowOutOfRange, lenErrRowOutOfRange
     B menucomando
