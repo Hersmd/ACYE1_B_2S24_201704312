@@ -32,6 +32,14 @@ dpuntos:
     .asciz ":"
     lenDpuntos = .- dpuntos
 
+flecha:
+    .asciz ">> "
+    lenFlecha = .- flecha
+
+ingresar_valor_msg:
+    .asciz "Ingrese el valor para la celda "
+    lenIngresarValorMsg = .- ingresar_valor_msg
+
 cols:
     .asciz " ABCDEFGHIJK" //11 COLUMNAS
 
@@ -82,6 +90,9 @@ cmdmin:
 
 cmdmax:
     .asciz "MAXIMO DESDE"
+
+cmdllenar:
+    .asciz "LLENAR DESDE"
 
 cmdy:
     .asciz "Y"
@@ -163,6 +174,14 @@ errorOpenFile:
 getIndexMsg:
     .asciz "Ingrese la columna para el encabezado "
     lenGetIndexMsg = .- getIndexMsg
+
+err_valor_invalido_msg:
+    .asciz "Error: Valor ingresado no válido, intente nuevamente\n"
+    lenErrValorInvalido = .- err_valor_invalido_msg
+
+errorRowNotFound:
+    .asciz "Error: Fila no encontrada\n"
+    lenErrorRowNotFound = .- errorRowNotFound
 
 readSuccess:
     .asciz "El Archivo Se Ha Leido Correctamente\n"
@@ -346,11 +365,15 @@ store_cell_row:
     STR xzr, [x14]
     LDRB w3, [x13], 1
     CMP w3, ' '
-    BEQ err_row_out_of_range
+    BEQ err_row_not_found
+    CMP w3, 10          // Salto de línea
+    BEQ err_row_not_found
+    CBZ w3, err_row_not_found
     
     STRB w3, [x14], 1
     
     LDRB w3, [x13], 1
+    CBZ w3, ret_store_cell_row
     CMP w3, ' '
     BEQ ret_store_cell_row
     STRB w3, [x14], 1
@@ -362,7 +385,7 @@ store_cell_row:
     CMP w3, ' '
     BNE err_row_out_of_range
     ret_store_cell_row:
-        print 1, cell_row, 2
+        //print 1, cell_row, 2
         RET
         
 proc_save:
@@ -529,8 +552,12 @@ proc_prom:
         B prom_loop
         cargar_otro_comando_prom2:
             CMP x19, 12
+            BGT cargar_otro_comando_prom3
             LDR x14, =cmdmax
             B prom_loop
+            cargar_otro_comando_prom3:
+                LDR x14, =cmdllenar
+                B prom_loop
 
     prom_loop:
         LDRB w2, [x14], 1
@@ -627,7 +654,7 @@ proc_prom:
                 CMP x19, 10         // Se verifica si es el comando PROMEDIO
                 LDR x4, =arreglo       // Dirección base del arreglo
                 BGT comprobar_cmd_min
-                LDR x10, =cell_col
+                //LDR x10, =cell_col
                 B prom
                 comprobar_cmd_min:
                     CMP x19, 11
@@ -638,14 +665,17 @@ proc_prom:
                     CMP x17, x9                     // Comparar si se ha llegado al final
                     BNE min                     // Si no se ha llegado al final, continuar
                     B end_proc_min             // Si se ha llegado al final, terminar
-                    comprobar_cmd_max:
-                        CMP x19, 12
-                        LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
-                        MOV x28, x5
-                        ADD x17, x17, 1
-                        CMP x17, x9
-                        BNE max
-                        B end_proc_max
+                comprobar_cmd_max:
+                    CMP x19, 12
+                    BGT comprobar_cmd_llenar  
+                    LDR x5, [x4, x17, LSL #3]       // Cargar el valor en x5
+                    MOV x28, x5
+                    ADD x17, x17, 1
+                    CMP x17, x9
+                    BNE max
+                    B end_proc_max
+                comprobar_cmd_llenar:
+                    B llenar
                 prom:
                     LDR x19, [x4, x17, LSL #3]       // Cargar el valor en x19
                     MOV x23, 11
@@ -708,6 +738,77 @@ proc_prom:
                     BGE end_proc_max
                     
                     B max
+                
+                llenar:
+                    MOV x23, 11
+                    UDIV x14, x17, x23             // x14 contiene la fila actual
+                    MSUB x20, x14, x23, x17       // x20 contiene el residuo de la division entre 11
+                                
+                    CMP x20, x16               // Se compara el residuo con el numero de la primera columna
+                    CINC x17, x17, LT       // Si el residuo es menor que el numero de la primera columna, se incrementa el slot
+                    BLT llenar                // Si el residuo es menor que el numero de la primera columna, se repite el ciclo
+                    CMP x20, x18            // Se compara el residuo con el numero de la segunda columna
+                    CINC x17, x17, GT       // Si el residuo es mayor que el numero de la segunda columna, se incrementa el slot
+                    BGT llenar
+
+                    get_current_index:
+                        LDR x19, =cell_col
+                        ADD x20, x20, 'A'    // Convertir el índice de columna a letra
+                        STRB w20, [x19]
+
+                regreso:
+                    // Solicitar al usuario que ingrese un valor para la celda
+                    print 1, ingresar_valor_msg, lenIngresarValorMsg
+                    print 1, cell_col, 1
+                    ADD X0, x14, 1
+                    LDR x1, =num
+                    STP x29, x30, [SP, -16]!
+                    BL itoa
+                    LDP x29, x30, [SP], 16
+                    print 1, dpuntos, lenDpuntos
+                    print 1, espacio2, lenEspacio2
+                    print 1, flecha, lenFlecha
+                    LDR x8, =num
+                    STR xzr, [x8]
+                    read 0, num, 8
+                    LDR x8, =num
+
+                    loopComprobar:
+                        LDRB w19, [x8], 1
+                        CBZ w19, convertir
+                        CMP w19, 10  // Salto de línea   
+                        BEQ convertir
+                        CMP w19, 32  // Espacio 
+                        BEQ convertir
+                        CMP w19, 45  // Signo menos
+                        BEQ loopComprobar
+                        CMP w19, 48  // 0
+                        BLT err_valor_invalido
+                        CMP w19, 57  // 9
+                        BGT err_valor_invalido
+                        B loopComprobar
+
+                    convertir:
+
+                    LDR x8, =num
+                    LDR x5, =num
+                    
+                    STP x29, x30, [SP, -16]!
+                    STR x9, [SP, -8]          // Guardar x9 en el stack
+                    BL atoi
+                    // Almacenar el valor en la matriz
+                    LDR x4, =arreglo       // Dirección base del arreglo
+                    STR x9, [x4, x17, LSL #3]
+
+                    LDR x9, [SP, -8]          // Cargar x9 desde el stack
+                    LDP x29, x30, [SP], 16
+
+                    ADD x17, x17, 1
+                    CMP x17, x9
+                    BNE llenar
+                    B end_proc_llenar
+    end_proc_llenar:
+        RET
     end_proc_min:
         print 1, resultado_minimo_msg, lenResultadoMinimoMsg
         RET
@@ -717,7 +818,9 @@ proc_prom:
     end_proc_prom:
         print 1, resultado_promedio_msg, lenResultadoPromedioMsg
         RET
-
+    err_valor_invalido:
+    print 1, err_valor_invalido_msg, lenErrValorInvalido
+    B regreso
 
 
 proc_op:
@@ -1404,6 +1507,15 @@ findcmd:
     MOV x19, 12
     BEQ fn_promCMD
 
+    LDR x0, =cmdllenar
+    LDR x1, =bufferComando
+    STP x29, x30, [SP, -16]!
+    BL findcmd_loop
+    LDP x29, x30, [SP], 16
+    CMP x2, 1         // Indicador de que el comando coincide
+    MOV x19, 13
+    BEQ fn_llenarCMD
+
     LDR x0, =cmdimp
     LDR x1, =bufferComando
     STP x29, x30, [SP, -16]!
@@ -1440,7 +1552,10 @@ fn_promCMD:
     LDP x29, x30, [SP], 16
     print 1, salto, lenSalto
     B menucomando
-
+fn_llenarCMD:
+    BL proc_prom
+    BL print_matrix         // imprimir matriz con datos
+    B menucomando
 fn_importCMD:
     BL proc_import          // procesar comando de importación, con nombre de archivo y separación
 
@@ -1478,4 +1593,9 @@ err_col_out_of_range:
 err_row_out_of_range:
     print 1, cell_row, 2
     print 1, errorRowOutOfRange, lenErrRowOutOfRange
+    B menucomando
+
+err_row_not_found:
+    print 1, cell_row, 2
+    print 1, errorRowNotFound, lenErrorRowNotFound
     B menucomando
