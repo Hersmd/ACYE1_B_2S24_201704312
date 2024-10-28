@@ -9,11 +9,11 @@
 
 .data
 header:
-    .ascii "==============================PRACTICA 4==============================="
+    .ascii "============================== PROYECTO 2 ==============================="
     .ascii "\nUniversidad de San Carlos de Guatemala\nFacultad de Ingeniería \n"
     .ascii "Escuela de Ciencias y Sistemas\nArquitectura de Computadores y Ensambladores 1"
     .ascii "\nSección B\nHenri Eduardo Martinez Duarte\n201704312\n"
-    .ascii "======================================================================\n"
+    .ascii "=========================================================================\n"
     lenHeader = . - header
 
 salto:
@@ -28,6 +28,10 @@ espacio2:
     .asciz " "
     lenEspacio2 = .- espacio2
 
+diagonal:
+    .ascii "/"
+    lenDiagonal = .- diagonal
+
 dpuntos:
     .asciz ":"
     lenDpuntos = .- dpuntos
@@ -35,6 +39,10 @@ dpuntos:
 flecha:
     .asciz ">> "
     lenFlecha = .- flecha
+
+createSucces:
+    .asciz "El Reporte Se Ha Abierto Correctamente\n"
+    lenCreateSuccess = .- createSucces
 
 ingresar_valor_msg:
     .asciz "Ingrese el valor para la celda "
@@ -48,6 +56,15 @@ rows:
 
 cmdimp:
     .asciz "IMPORTAR"
+
+cmdexp:
+    .asciz "EXPORTAR"
+
+cmddesde:
+    .asciz "DESDE"
+
+cmdhacia:
+    .asciz "HACIA"
 
 cmdsave:
     .asciz "GUARDAR"
@@ -129,6 +146,83 @@ resultado_maximo_msg:
     .asciz "El valor máximo del rango seleccionado es: "
     lenResultadoMaximoMsg = .- resultado_maximo_msg
 
+html_table_start:
+    .ascii "<html>\n"
+    .ascii "\t<head>\n"
+    .ascii "\t\t<meta charset=\"UTF-8\">\n"
+    .ascii "\t\t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n"
+    .ascii "\t\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+    .ascii "\t\t<title>Tabla De Símbolos</title>\n"
+    .ascii "\t\t<link href=\"all.css\" rel=\"stylesheet\" type=\"text/css\">\n"
+    .ascii "\t\t<link href=\"style.css\" rel=\"stylesheet\">\n"
+    .ascii "\t\t<link href=\"https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i\" rel=\"stylesheet\">\n"
+    .ascii "\t</head>\n"
+    .ascii "\t<body class=\"bg-rose\">\n"
+    .ascii "\t\t<div id=\"content-wrapper\" class=\"d-flex flex-column\">\n"
+    .ascii "\t\t\t<div id=\"content\">\n"
+    .ascii "\t\t\t\t<nav class=\"navbar navbar-expand navbar-light topbar mb-4 static-top shadow justify-content-center bg-gray-900 bg-gradient-dark2\">\n"
+    .ascii "\t\t\t\t\t<label class=\"h1 text-coral\">ACYE1</label>\n"
+    .ascii "\t\t\t\t\t<label class=\"h1 text-white\">- Proyecto 2</label>\n"
+    .ascii "\t\t\t\t</nav>\n"
+    .ascii "\t\t\t\t<div class=\"container-fluid bg-rose\">\n"
+    .ascii "\t\t\t\t\t<div class=\"d-sm-flex justify-content-center\">\n"
+    .ascii "\t\t\t\t\t\t<div class=\"col-xl-8 col-lg-7 justify-content-center ml-5 align-items-center\">\n"
+    .ascii "\t\t\t\t\t\t\t<div class=\"card shadow mb-4\">\n"
+    .ascii "\t\t\t\t\t\t\t\t<div class=\"row card-header bg-gray-900 py-3 justify-content-between\">\n"
+    .ascii "\t\t\t\t\t\t\t\t\t<h6 class=\"h2 font-weight-bold text-turquoise\" bg-gray-900>TABLA EXPORTADA</h6>\n"
+    .ascii "\t\t\t\t\t\t\t\t</div>\n"
+    .ascii "\t\t\t\t\t\t\t\t<div class=\"card-body\">\n"
+    .ascii "\t\t\t\t\t\t\t\t\t<div class=\"table-responsive\">\n"
+    .ascii "\t\t\t\t\t\t\t\t\t\t<table class=\"table table-dark\" width=\"100%\" cellspacing=\"0\">\n"
+    .ascii "\t\t\t\t\t\t\t\t\t\t\t<thead>\n"
+len_html_table_start = . - html_table_start
+
+html_header_end:
+    .ascii "\t\t\t\t\t\t\t\t\t\t\t</thead>\n"
+    .ascii "\t\t\t\t\t\t\t\t\t\t\t<tbody>\n"
+len_html_header_end = . - html_header_end
+
+html_table_end:
+    .ascii "\t\t\t\t\t\t\t\t\t\t\t</tbody>\n"
+    .ascii "\t\t\t\t\t\t\t\t\t\t</table>\n"
+    .ascii "\t\t\t\t\t\t\t\t\t</div>\n"
+    .ascii "\t\t\t\t\t\t\t\t</div>\n"
+    .ascii "\t\t\t\t\t\t\t</div>\n"
+    .ascii "\t\t\t\t\t\t</div>\n"
+    .ascii "\t\t\t\t\t</div>\n"
+    .ascii "\t\t\t\t</div>\n"
+    .ascii "\t\t\t</div>\n"
+    .ascii "\t\t</div>\n"
+    .ascii "\t</body>\n"
+    .ascii "</html>\n"
+len_html_table_end = . - html_table_end
+
+
+
+html_row_start:
+    .ascii "\t\t\t\t\t\t\t\t\t\t\t<tr>\n"
+len_html_row_start = . - html_row_start
+
+html_row_end:
+    .ascii "\t\t\t\t\t\t\t\t\t\t\t</tr>\n"
+len_html_row_end = . - html_row_end
+
+html_cell_start:
+    .ascii "\t\t\t\t\t\t\t\t\t\t\t\t<td>"
+len_html_cell_start = . - html_cell_start
+
+html_cell_end:
+    .ascii "</td>\n"
+len_html_cell_end = . - html_cell_end
+
+ingresar_encabezado_col_msg:
+    .asciz "Ingrese el encabezado de la columna "
+    lenIngresarEncabezadoColMsg = .- ingresar_encabezado_col_msg
+
+closeFileSuccess:
+    .asciz "El Archivo Se Ha Cerrado Correctamente\n"
+    lenCloseFileSuccess = .- closeFileSuccess
+
 errorImport:
     .asciz "Error En El Comando De Importación\n"
     lenErrorImport = .- errorImport
@@ -150,6 +244,10 @@ errorSegParam:
 errorColOutOfRange:
     .asciz "Error, columna fuera de rango, el rango es de A a K\n"
     lenErrColOutOfRange = .- errorColOutOfRange
+
+errorColOutOfRange2:
+    .asciz "Error, el numero de columna mas el numero de columnas a exportar excede a 11\n"
+    lenErrColOutOfRange2 = .- errorColOutOfRange2
 
 errorSum:
     .asciz "Error En El Comando de operación aritmética\n"
@@ -183,13 +281,32 @@ errorRowNotFound:
     .asciz "Error: Fila no encontrada\n"
     lenErrorRowNotFound = .- errorRowNotFound
 
+err_col_lt_1_msg:
+    .asciz "Error: El primer parametro debe ser un numero mayor a 1 y menor a 23\n"
+    lenErrColLt1 = .- err_col_lt_1_msg
+
+err_division_cero_msg:
+    .asciz "Error: No se puede dividir entre 0\n"
+    lenErrDivisionCero = .- err_division_cero_msg
+
+errorExport:
+    .asciz "Error al exportar tabla\n"
+    lenErrorExport = . - errorExport
+
 readSuccess:
     .asciz "El Archivo Se Ha Leido Correctamente\n"
     lenReadSuccess = .- readSuccess
 
+err_potencia_negativa_msg:
+    .asciz "Error: No se puede elevar un numero a una potencia negativa\n"
+    lenErrPotenciaNegativa = .- err_potencia_negativa_msg
+
 .bss
 input_opcion:
     .space 4
+
+table_header:
+    .space 20
 
 arreglo:
     .rept 506
@@ -295,8 +412,8 @@ itoa:
         BLE i_endConversion
 
         i_reduceBase:
-            MOV x6, 10
-            UDIV x2, x2, x6
+            MOV x5, 10
+            UDIV x2, x2, x5
 
             CBNZ x10, i_addZero
             B i_convertirAscii
@@ -314,6 +431,71 @@ itoa:
     i_endConversion:
         ADD x10, x10, x12
         print 1, num, x10
+        RET
+
+itoa2:
+    // params: x0 => number, x1 => buffer address
+    MOV x10, 0  // contador de digitos a imprimir
+    MOV x12, 0  // flag para indicar si hay signo menos
+    CBZ x0, i_zero2
+    CMP x0, 0
+    MOV x2, 1
+    BGT defineBase2
+    MOV  x12, 1
+    MOV w5, '-'
+    STRB w5, [x1], 1
+    NEG x0, x0
+    defineBase2:
+        CMP x2, x0      //Se compara el numero con la base 1, 10, 100, 1000, etc
+        MOV x5, 0
+        BGT i_convertirAscii2      //Si la base es mayor que el numero, se sale del ciclo
+        MOV x5, 10
+        MUL x2, x2, x5  // Si la base es menor que el numero, se multiplica la base  por 10
+        B defineBase2
+
+    i_zero2:
+        ADD x10, x10, 1
+        MOV w5, '0'
+        STRB w5, [x1], 1
+        B i_endConversion2
+
+    i_convertirAscii2:
+        CBZ x2, i_endConversion2
+        UDIV x3, x0, x2             // Dividir el número entre la base, el residuo es el dígito a imprimir
+        CBZ x3, i_reduceBase2
+
+        ADD x10, x10, 1
+        CMP x10, 6
+        BGE i_endConversion_mayor62
+
+        MOV w5, w3
+        ADD w5, w5, 48
+        STRB w5, [x1], 1
+
+        MUL x3, x3, x2
+        SUB x0, x0, x3
+        CMP x2, 1
+        BLE i_endConversion2
+
+        i_reduceBase2:
+            MOV x5, 10
+            UDIV x2, x2, x5
+
+            CBNZ x10, i_addZero2
+            B i_convertirAscii2
+
+        i_addZero2:
+            CBNZ x3, i_convertirAscii2
+            ADD x10, x10, 1
+            MOV w5, 48
+            STRB w5, [x1], 1
+            B i_convertirAscii2
+    i_endConversion_mayor62:
+        MOV w5, '!' 
+        STRB w5, [x1], 1
+        B i_endConversion2
+    i_endConversion2:
+        ADD x10, x10, x12
         RET
 
 atoi:
@@ -1060,12 +1242,20 @@ proc_op:
                     B end_operacion
                 
                 division:
+                    CMP x9, 0
+                    BEQ err_division
                     SDIV x9, x17, x9      // Dividir el valor en x9
                     B end_operacion
+
+                    err_division:
+                        print 1, err_division_cero_msg, lenErrDivisionCero
+                        B menucomando
                 
                 potencia:
                     MOV x10, 1
                     MOV x11, 0
+                    CMP x9, 0
+                    BLT err_potencia_negativa
                     potencia_loop:
                         CMP x11, x9
                         BGE end_potencia
@@ -1075,6 +1265,9 @@ proc_op:
                     end_potencia:
                         MOV x9, x10
                         B end_operacion
+                    err_potencia_negativa:
+                        print 1, err_potencia_negativa_msg, lenErrPotenciaNegativa
+                        B menucomando
 
                 or_logico:
                     ORR x9, x17, x9       // OR lógico a nivel de bits
@@ -1298,14 +1491,274 @@ openFile:
     
     op_f_end:
         RET
+openReport:
+    MOV x0, -100        // open
+    LDR x1, =filename   // filename address
+    MOV x2, 101         // O_WRONLY | O_CREAT
+    MOV x3, 0777        // permissions
+    MOV x8, 56          // openat
+    SVC #0              // syscall
+
+    CMP x0, 0
+    BLE op_r_error
+    LDR x2, =fileDescriptor
+    STR x0, [x2]
+    B op_r_end
+
+    op_r_error:
+        print 1, errorOpenFile, lenErrOpenFile
+        RET
+
+    op_r_end:
+        print 1, createSucces, lenCreateSuccess
+        RET
+
 
 closeFile:
+    print 1, closeFileSuccess, lenCloseFileSuccess
     LDR x0, =fileDescriptor
     LDR x0, [x0]
     MOV x8, 57
     SVC 0
     RET
 
+proc_export:
+    LDR x14, =cmdexp // cargar comando de exportación
+    LDR x13, =bufferComando
+    exp_loop:
+        LDRB w2, [x14], 1
+        LDRB w3, [x13], 1
+
+        CBZ w2, exp_from
+        CMP w2, w3
+        BNE exp_error
+
+        B exp_loop
+
+        exp_error:
+            print 1, errorExport, lenErrorExport
+            B end_proc_export
+    exp_from:
+        LDRB w2, [x13], 1   // cargar  primer byte de numero
+        CMP w2, '1'
+        BLT err_col_lt_1
+        CMP w2, '9'
+        BGT err_col_lt_1
+        LDR x5, =num
+        STR xzr, [x5]
+        STRB w2, [x5], 1
+        LDRB w2, [x13], 1
+        CMP w2, ' '
+        BEQ convert_num_exp
+        CMP w2, '0'
+        BLT err_col_lt_1
+        CMP w2, '9'
+        BGT err_col_lt_1
+        STRB w2, [x5], 1
+        LDRB w2, [x13], 1
+        CMP w2, ' '
+        BEQ convert_num_exp
+
+        err_col_lt_1:
+            print 1, err_col_lt_1_msg, lenErrColLt1
+            B menucomando
+    convert_num_exp:
+        LDR x5, =num
+        LDR x8, =num
+        STP x29, x30, [SP, -16]!
+        BL atoi
+        LDP x29, x30, [SP], 16
+        MOV x5, xzr
+        MOV x8, xzr
+        LDR x14, =cmddesde
+        verify_desde:
+            LDRB w2, [x14], 1   // comando  Desde
+            LDRB w3, [x13], 1   // BUFFER
+            CBZ w2, get_second_param_exp
+
+            CMP w2, w3
+            BNE err_cmd_sec
+            B verify_desde
+            
+            
+    get_second_param_exp:
+        
+
+        LDRB w2, [x13], 1   // cargar la letra (columna)
+
+        CMP w2,'K'
+        BGT err_col_out_of_range
+
+        CMP w2, 'A'      // A
+        BLT err_col_out_of_range
+
+        SUB w17, w2, 65          // Se restan 65 para obtener el índice de la columna (A=0, B=1, ..., Z=25) 
+        ADD w8, w17, w9             // x8 = numero de columna + cantidad de columnas a imprimir
+        CMP w8, 11
+        BGT err_col_out_of_range2
+        LDRB w2, [x13], 1   // 
+        CMP w2, ' '
+        BNE err_col_out_of_range
+        LDR x14, =cmdhacia
+        verify_hacia:
+            LDRB w2, [x14], 1   // comando  Hacia
+            LDRB w3, [x13], 1   // BUFFER
+            CBZ w2, exp_filename
+    
+            CMP w2, w3
+            BNE err_cmd_sec
+            B verify_hacia
+    
+
+    exp_filename:
+        LDR x4, =filename
+        exp_file_loop:
+            LDRB w2, [x13], 1
+            CBZ w2, cont_exp_file
+            CMP w2, '\n'              // espacio
+            BEQ cont_exp_file
+
+            STRB w2, [x4], 1        
+            B exp_file_loop         // continuar leyendo el nombre del archivo
+        
+        cont_exp_file:
+            STRB wzr, [x4]  
+    end_proc_export:
+        //Salida x9 = numero de columnas
+        //Salida x17 = Columna inicial
+        //Salida filename = nombre del archivo
+        MOV x0, x9
+        LDR x1, =num
+        STP x29, x30, [SP, -16]!
+        BL itoa
+        LDP x29, x30, [SP], 16
+        MOV x0, x17
+        LDR x1, =num
+        STP x29, x30, [SP, -16]!
+        BL itoa
+        LDP x29, x30, [SP], 16
+        RET
+export_data:
+    LDR x1, =filename
+    STP x29, x30, [SP, -16]!
+    BL openReport
+    LDP x29, x30, [SP], 16
+
+    ADR x21, fileDescriptor  // Cargar la dirección de fileDescriptor en x21
+    LDR x20, [x21]           // Cargar el valor almacenado en la dirección fileDescriptor en x20
+    print x20, html_table_start, len_html_table_start
+    //x17 contiene el primer slot a imprimir
+
+    LDR x1, =num
+    MOV x0, x9
+    STP x29, x30, [SP, -16]!
+    BL itoa
+    LDP x29, x30, [SP], 16
+
+    MOV x6, 0
+    print x20, html_row_start, len_html_row_start
+    loop_get_headers:
+        print 1, ingresar_encabezado_col_msg, lenIngresarEncabezadoColMsg
+        CMP x6, 9
+        BLT num_simple
+        MOV x1, 10
+        ADD x5, x6, 1
+        UDIV x0, x5, x1
+        MSUB x2, x0, x1, x5
+        
+        LDR x1, =num
+        ADD x0, x0, 48
+        STRB w0, [x1], 1
+        ADD x2, x2, 48
+        STRB w2, [x1], 1
+        print 1, num, 2
+        B continuacion_getheaders
+            num_simple:
+                LDR x1, =num
+                ADD x0, x6, 49
+                STR x0, [x1]
+                print 1, num, 1
+        continuacion_getheaders:
+       
+        print 1, dpuntos, lenDpuntos
+        print 1, espacio2, lenEspacio2
+        print x20, html_cell_start, len_html_cell_start
+        read 0, table_header, 20
+        MOV x10, 0
+        ldr x5, =table_header
+        loop_get_header_size:
+            LDRB w2, [x5, x10]
+            CBZ w2, end_get_headers
+            CMP w2, 10  // Salto de línea
+            BEQ end_get_headers
+            ADD x10, x10, 1
+            B loop_get_header_size
+
+        end_get_headers:
+        print x20, table_header, x10
+        print x20, html_cell_end, len_html_cell_end
+        ADD x6, x6, 1
+        CMP x6, x9
+        BLT loop_get_headers
+        print x20, html_row_end, len_html_row_end
+        print x20, html_header_end, len_html_header_end
+
+
+        MOV x16, x17        // x16 contiene la primera columna
+        ADD x18, x16, x9        // x18 contiene la última columna
+        SUB x18, x18, 1
+        //x17 contiene el slot actual
+        //x9 contiene el numero de columnas
+        ADD x9, x18, 243
+        LDR x4, =arreglo
+        loop_get_content:
+            MOV x23, 11
+            UDIV x2, x17, x23
+            MSUB x23, x2, x23, x17       // x23 contiene el residuo de la division entre 11
+            //x23 contiene la columna actual
+            //x2 contiene la fila actual
+            CMP x23, x16               // comparar columna con primera columna
+            BNE continue_loop_content
+
+            print x20, html_row_start, len_html_row_start
+
+            continue_loop_content:
+            CINC x17, x17, LT       // si columna actual es menor que la primera columna, se incrementa el slot
+            BLT loop_get_content                // Si columna actual es menor que el numero de la primera columna, se repite el ciclo
+            CMP x23, x18            // comparar columna actual con el numero de la ultima columna
+            CINC x17, x17, GT       // Si el residuo es mayor que el numero de la ultima columna, se incrementa el slot
+            BGT loop_get_content
+
+            print x20, html_cell_start, len_html_cell_start
+
+            LDR x19, [x4, x17, LSL #3]       // Cargar el valor en x19
+            MOV x0, x19
+            LDR x1, =num
+            STP x29, x30, [SP, -16]!
+            BL itoa2
+            LDP x29, x30, [SP], 16
+
+            print x20, num, x10
+
+            print x20, html_cell_end, len_html_cell_end
+
+            CMP x23, x18
+            BNE continue_loop_content2
+
+           print x20, html_row_end, len_html_row_end
+
+            continue_loop_content2:
+            ADD x17, x17, 1
+            CMP x17, x9
+            BLT loop_get_content     
+
+        print x20, html_table_end, len_html_table_end
+        STP x29, x30, [SP, -16]!
+        BL closeFile
+        LDP x29, x30, [SP], 16
+        RET
+    
+        
 print_matrix:
     LDR x4, =arreglo    // cargar dirección de la matriz
     MOV x9, 0  // index de slots
@@ -1376,14 +1829,13 @@ _start:
         
         cmp x13, x5
         bne _start
+        MOV x28, 0
         
         BL print_matrix         // imprimir matriz vacía
     menucomando:
             print 1, menu_cmd_msg, lenMenuCmdMsg
             read 0, bufferComando, 50   // leer comando de importación
             B findcmd
-
-            
 
     exit: 
         MOV x0, 0
@@ -1524,6 +1976,14 @@ findcmd:
     CMP x2, 1         // Indicador de que el comando coincide
     BEQ fn_importCMD
 
+    LDR x0, =cmdexp
+    LDR x1, =bufferComando
+    STP x29, x30, [SP, -16]!
+    BL findcmd_loop
+    LDP x29, x30, [SP], 16
+    CMP x2, 1         // Indicador de que el comando coincide
+    BEQ fn_exportCMD
+
     B fn_errorCMD
 
 fn_saveCMD:
@@ -1552,10 +2012,12 @@ fn_promCMD:
     LDP x29, x30, [SP], 16
     print 1, salto, lenSalto
     B menucomando
+
 fn_llenarCMD:
     BL proc_prom
     BL print_matrix         // imprimir matriz con datos
     B menucomando
+
 fn_importCMD:
     BL proc_import          // procesar comando de importación, con nombre de archivo y separación
 
@@ -1563,6 +2025,12 @@ fn_importCMD:
 
     BL print_matrix         // imprimir matriz con datos
     B menucomando
+
+fn_exportCMD:
+    BL proc_export
+    BL export_data          // exportar datos del archivo
+    B menucomando
+
 findcmd_loop:
         LDRB w2, [x0], 1
         LDRB w3, [x1], 1
@@ -1588,6 +2056,10 @@ fn_errorCMD:
 err_col_out_of_range:
     print 1, cell_row, 2
     print 1, errorColOutOfRange, lenErrColOutOfRange
+    B menucomando
+
+err_col_out_of_range2:
+    print 1, errorColOutOfRange2, lenErrColOutOfRange2
     B menucomando
 
 err_row_out_of_range:
