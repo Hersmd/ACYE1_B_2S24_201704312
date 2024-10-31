@@ -1627,16 +1627,6 @@ proc_export:
         //Salida x9 = numero de columnas
         //Salida x17 = Columna inicial
         //Salida filename = nombre del archivo
-        MOV x0, x9
-        LDR x1, =num
-        STP x29, x30, [SP, -16]!
-        BL itoa
-        LDP x29, x30, [SP], 16
-        MOV x0, x17
-        LDR x1, =num
-        STP x29, x30, [SP, -16]!
-        BL itoa
-        LDP x29, x30, [SP], 16
         RET
 export_data:
     LDR x1, =filename
